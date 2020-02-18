@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import logging
 import os
 from multiprocessing import Process, Queue, Event, Lock
+from queue import Empty
 
 from .task_functions import create_process_task, create_process_task_gpu, task_executor_fn, task_executor_gpu_fn
 from ..core.constants import BATCH, REALTIME, GPU, CPU, LOGGING_LEVEL
@@ -84,7 +85,10 @@ class BatchprocessingQueueMessenger(Messenger):
         return self.passthrough_message()
     
     def receive_raw_message(self):
-        input_message_dict = self._parent_task_queue.get()
+        try:
+            input_message_dict = self._parent_task_queue.get(block=True, timeout=0.05)
+        except Empty:
+            input_message_dict = {}
         self._last_message_received = input_message_dict
         self._logger.debug(f'Received message: {input_message_dict}')
         
@@ -99,7 +103,10 @@ class BatchprocessingQueueMessenger(Messenger):
             return dict(input_message_dict)
 
     def receive_message(self):
-        input_message_dict = self._parent_task_queue.get()
+        try:
+            input_message_dict = self._parent_task_queue.get(block=True, timeout=0.05)
+        except Empty:
+            input_message_dict = {}
         self._logger.debug(f'Received message: {input_message_dict}')
         self._last_message_received = input_message_dict
         inputs = [input_message_dict[a] for a in self._parent_nodes_ids]
