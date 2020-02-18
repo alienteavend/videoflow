@@ -6,7 +6,6 @@ import logging
 
 import os
 from multiprocessing import Process, Queue, Event, Lock
-from queue import Empty
 
 from .task_functions import create_process_task, create_process_task_gpu, task_executor_fn, task_executor_gpu_fn
 from ..core.constants import BATCH, REALTIME, GPU, CPU, LOGGING_LEVEL
@@ -121,12 +120,7 @@ class RealtimeQueueMessenger(Messenger):
             pass
 
     def receive_message(self):
-        while True:
-            try:
-                input_message_dict = self._parent_task_queue.get(block=True, timeout=0.05)
-                break
-            except Empty:
-                continue
+        input_message_dict = self._parent_task_queue.get()
         self._logger.debug(f'Received message: {input_message_dict}')
         self._last_message_received = input_message_dict
         inputs = [input_message_dict[a] for a in self._parent_nodes_ids]
