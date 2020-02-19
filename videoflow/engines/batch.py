@@ -251,8 +251,8 @@ class BatchExecutionEngine(ExecutionEngine):
                     continue
         else:
             start = time.time()
-            first_kill_time = time.time()
-            while time.time() - start <= max_wait_time and time.time() - first_kill_time <= timeout:
+            first_kill_time = None
+            while time.time() - start <= max_wait_time:
                 if not any(p.is_alive() for p in self._procs):
                     # All the processes are done, break now.
                     break
@@ -260,6 +260,13 @@ class BatchExecutionEngine(ExecutionEngine):
                 if not first_kill_time and any(not p.is_alive() for p in self._procs):
                     # First process stopped, start countdown
                     first_kill_time = time.time()
+                    print(first_kill_time)
+
+                if first_kill_time and time.time() - first_kill_time > timeout:
+                    print("timed out 2, killing all processes")
+                    for p in self._procs:
+                        p.terminate()
+                        p.join()
 
                 time.sleep(.1)  # Just to avoid hogging the CPU
             else:
