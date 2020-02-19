@@ -257,7 +257,7 @@ class BatchExecutionEngine(ExecutionEngine):
                     # All the processes are done, break now.
                     break
 
-                if any(not p.is_alive() for p in self._procs):
+                if not first_kill_time and any(not p.is_alive() for p in self._procs):
                     # First process stopped, start countdown
                     first_kill_time = time.time()
 
