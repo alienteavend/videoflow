@@ -109,7 +109,7 @@ class ExecutionEngine:
         '''
         raise NotImplementedError('Subclass of ExecutionEnvironment must implement')
     
-    def join_task_processes(self):
+    def join_task_processes(self, timeout, max_wait_time):
         '''
         Blocking method.  It is supposed to make the calling process sleep until all task \
         processes have finished processing.

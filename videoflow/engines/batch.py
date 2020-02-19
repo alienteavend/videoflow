@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import logging
 import os
+import time
 from multiprocessing import Process, Queue, Event, Lock
 from queue import Empty
 
@@ -237,10 +238,33 @@ class BatchExecutionEngine(ExecutionEngine):
     def signal_flow_termination(self):
         self._termination_event.set()
     
-    def join_task_processes(self):
-        for proc in self._procs:
-            try:
-                proc.join()
-            except KeyboardInterrupt:
-                proc.join()
-                continue
+    def join_task_processes(self, timeout=None, max_wait_time=None):
+        if not max_wait_time:
+            max_wait_time = timeout
+
+        if not timeout:
+            for proc in self._procs:
+                try:
+                    proc.join()
+                except KeyboardInterrupt:
+                    proc.join()
+                    continue
+        else:
+            start = time.time()
+            first_kill_time = time.time()
+            while time.time() - start <= max_wait_time and time.time() - first_kill_time <= timeout:
+                if not any(p.is_alive() for p in self._procs):
+                    # All the processes are done, break now.
+                    break
+
+                if any(not p.is_alive() for p in self._procs):
+                    # First process stopped, start countdown
+                    first_kill_time = time.time()
+
+                time.sleep(.1)  # Just to avoid hogging the CPU
+            else:
+                # We only enter this if we didn't 'break' above.
+                print("timed out, killing all processes")
+                for p in self._procs:
+                    p.terminate()
+                    p.join()

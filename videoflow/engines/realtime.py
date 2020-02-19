@@ -257,7 +257,7 @@ class RealtimeExecutionEngine(ExecutionEngine):
     def signal_flow_termination(self):
         self._termination_event.set()
     
-    def join_task_processes(self):
+    def join_task_processes(self, timeout, max_wait_time):
         for proc in self._procs:
             try:
                 proc.join()

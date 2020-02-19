@@ -94,12 +94,12 @@ class Flow:
         logger.info('Allocated processes for {} tasks'.format(len(tasks_data)))
         logger.info('Started running flow.')
     
-    def join(self):
+    def join(self, timeout=None, max_wait_time=None):
         '''
         Blocking method. Will make the process that calls this method block until the flow finishes
         running naturally.
         '''
-        self._execution_engine.join_task_processes()
+        self._execution_engine.join_task_processes(timeout, max_wait_time)
         logger.info('Flow has stopped.')
 
     def stop(self):
